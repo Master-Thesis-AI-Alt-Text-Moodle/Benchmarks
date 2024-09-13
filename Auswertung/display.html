@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reduced Model Data Display</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Reduced Model Data Display</h1>
+        
+        <div class="mb-4 flex space-x-4">
+            <div class="w-1/4">
+                <label for="openSourceFilter" class="block text-sm font-medium text-gray-700">OpenSource Filter</label>
+                <select id="openSourceFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" multiple>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="w-1/4">
+                <label for="modelSizeFilter" class="block text-sm font-medium text-gray-700">Model Size Filter</label>
+                <select id="modelSizeFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" multiple>
+                    <option value="<4B">&lt;4B</option>
+                    <option value="4-10B">4-10B</option>
+                    <option value="10B+">10B+</option>
+                </select>
+            </div>
+            <div class="w-1/4">
+                <label for="sortBy" class="block text-sm font-medium text-gray-700">Sort By</label>
+                <select id="sortBy" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="Model">Model Name</option>
+                    <option value="AverageScore">Average Score</option>
+                </select>
+            </div>
+            <div class="w-1/4">
+                <label class="block text-sm font-medium text-gray-700">&nbsp;</label>
+                <button id="exportCSV" class="mt-1 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Export to CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-200">
+                    <tr id="table-header"></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Paste your reduced JSON data here
+        const jsonData = [
+  {
+    "Model": "Qwen-VL",
+    "ModelSize": "9.6B",
+    "OpenSource": "Yes",
+    "TextVQA": 63.1,
+    "POPE": 70.0,
+    "AI2D": 57.7,
+    "ChartQA": 59.0,
+    "ScienceQA": 61.1,
+    "MMMU": 29.6,
+    "MMBench": 32.2,
+    "MathVista": 15.5,
+    "AverageScore": 48.525000000000006
+  },
+  {
+    "Model": "Qwen-VL-Chat",
+    "ModelSize": "9.6B",
+    "OpenSource": "Yes",
+    "TextVQA": 60.7,
+    "POPE": 74.9,
+    "AI2D": 63.0,
+    "ChartQA": 49.8,
+    "ScienceQA": 68.8,
+    "MMMU": 37.0,
+    "MMBench": 61.8,
+    "MathVista": 34.9,
+    "AverageScore": 56.362500000000004
+  },
+  {
+    "Model": "PandaGPT-13B",
+    "ModelSize": "14B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 75.1,
+    "AI2D": 50.3,
+    "ChartQA": "N/A",
+    "ScienceQA": 63.2,
+    "MMMU": 32.9,
+    "MMBench": 42.5,
+    "MathVista": 25.0,
+    "AverageScore": 48.166666666666664
+  },
+  {
+    "Model": "OpenFlamingo v2",
+    "ModelSize": "9B",
+    "OpenSource": "Yes",
+    "TextVQA": 16.3,
+    "POPE": 52.6,
+    "AI2D": 31.7,
+    "ChartQA": "N/A",
+    "ScienceQA": 44.8,
+    "MMMU": 28.8,
+    "MMBench": 5.7,
+    "MathVista": 18.6,
+    "AverageScore": 28.357142857142858
+  },
+  {
+    "Model": "ShareGPT4V-7B",
+    "ModelSize": "7.2B",
+    "OpenSource": "Yes",
+    "TextVQA": 51.1,
+    "POPE": 86.6,
+    "AI2D": 58.0,
+    "ChartQA": 21.3,
+    "ScienceQA": 69.5,
+    "MMMU": 37.2,
+    "MMBench": 67.6,
+    "MathVista": 26.5,
+    "AverageScore": 52.224999999999994
+  },
+  {
+    "Model": "ShareGPT4V-13B",
+    "ModelSize": "13.4B",
+    "OpenSource": "Yes",
+    "TextVQA": 52.7,
+    "POPE": 87.5,
+    "AI2D": 61.4,
+    "ChartQA": 24.6,
+    "ScienceQA": 72.6,
+    "MMMU": 36.6,
+    "MMBench": 69.8,
+    "MathVista": 29.3,
+    "AverageScore": 54.3125
+  },
+  {
+    "Model": "TransCore-M",
+    "ModelSize": "13.4B",
+    "OpenSource": "Yes",
+    "TextVQA": 55.2,
+    "POPE": 87.1,
+    "AI2D": 64.1,
+    "ChartQA": 28.0,
+    "ScienceQA": 74.9,
+    "MMMU": 41.0,
+    "MMBench": 82.3,
+    "MathVista": 32.3,
+    "AverageScore": 58.112500000000004
+  },
+  {
+    "Model": "InstructBLIP-7B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 33.6,
+    "POPE": 86.1,
+    "AI2D": 40.6,
+    "ChartQA": 10.9,
+    "ScienceQA": 54.1,
+    "MMMU": 30.6,
+    "MMBench": 33.9,
+    "MathVista": 24.4,
+    "AverageScore": 39.27499999999999
+  },
+  {
+    "Model": "VisualGLM",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 70.4,
+    "AI2D": 41.2,
+    "ChartQA": "N/A",
+    "ScienceQA": 56.1,
+    "MMMU": 29.9,
+    "MMBench": 37.6,
+    "MathVista": 21.9,
+    "AverageScore": 42.85
+  },
+  {
+    "Model": "ShareCaptioner",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 38.0,
+    "POPE": 84.4,
+    "AI2D": 56.7,
+    "ChartQA": "N/A",
+    "ScienceQA": 82.3,
+    "MMMU": 36.3,
+    "MMBench": 66.5,
+    "MathVista": 29.1,
+    "AverageScore": 56.1857142857143
+  },
+  {
+    "Model": "Monkey",
+    "ModelSize": "9.8B",
+    "OpenSource": "Yes",
+    "TextVQA": 65.8,
+    "POPE": 83.7,
+    "AI2D": 62.5,
+    "ChartQA": 59.0,
+    "ScienceQA": 72.1,
+    "MMMU": 38.9,
+    "MMBench": 59.6,
+    "MathVista": 33.5,
+    "AverageScore": 59.3875
+  },
+  {
+    "Model": "Monkey-Chat",
+    "ModelSize": "9.8B",
+    "OpenSource": "Yes",
+    "TextVQA": 65.5,
+    "POPE": 83.5,
+    "AI2D": 68.5,
+    "ChartQA": 59.5,
+    "ScienceQA": 82.4,
+    "MMMU": 40.7,
+    "MMBench": 72.4,
+    "MathVista": 35.9,
+    "AverageScore": 63.55
+  },
+  {
+    "Model": "MiniGPT-4-v2",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 60.0,
+    "AI2D": 30.5,
+    "ChartQA": "N/A",
+    "ScienceQA": 54.7,
+    "MMMU": 25.0,
+    "MMBench": 9.4,
+    "MathVista": 23.1,
+    "AverageScore": 33.78333333333333
+  },
+  {
+    "Model": "MiniGPT-4-v1-7B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 34.6,
+    "AI2D": 28.4,
+    "ChartQA": "N/A",
+    "ScienceQA": 39.6,
+    "MMMU": 23.6,
+    "MMBench": 23.0,
+    "MathVista": 20.4,
+    "AverageScore": 28.266666666666666
+  },
+  {
+    "Model": "Emu2_chat",
+    "ModelSize": "37B",
+    "OpenSource": "Yes",
+    "TextVQA": 67.6,
+    "POPE": 88.0,
+    "AI2D": 49.7,
+    "ChartQA": 26.8,
+    "ScienceQA": 68.2,
+    "MMMU": 35.0,
+    "MMBench": 63.6,
+    "MathVista": 30.7,
+    "AverageScore": 53.7
+  },
+  {
+    "Model": "Yi-VL-6B",
+    "ModelSize": "6.6B",
+    "OpenSource": "Yes",
+    "TextVQA": 44.8,
+    "POPE": 82.5,
+    "AI2D": 59.8,
+    "ChartQA": 15.5,
+    "ScienceQA": 72.6,
+    "MMMU": 40.3,
+    "MMBench": 68.4,
+    "MathVista": 29.7,
+    "AverageScore": 51.699999999999996
+  },
+  {
+    "Model": "Yi-VL-34B",
+    "ModelSize": "34.6B",
+    "OpenSource": "Yes",
+    "TextVQA": 42.5,
+    "POPE": 82.5,
+    "AI2D": 65.9,
+    "ChartQA": 14.0,
+    "ScienceQA": 75.5,
+    "MMMU": 45.1,
+    "MMBench": 72.4,
+    "MathVista": 31.5,
+    "AverageScore": 53.675
+  },
+  {
+    "Model": "OmniLMM-12B",
+    "ModelSize": "12B",
+    "OpenSource": "Yes",
+    "TextVQA": 62.3,
+    "POPE": 81.7,
+    "AI2D": 63.3,
+    "ChartQA": 22.7,
+    "ScienceQA": 81.1,
+    "MMMU": 41.8,
+    "MMBench": 71.7,
+    "MathVista": 34.7,
+    "AverageScore": 57.4125
+  },
+  {
+    "Model": "DeepSeek-VL-1.3B",
+    "ModelSize": "2.0B",
+    "OpenSource": "Yes",
+    "TextVQA": 57.8,
+    "POPE": 85.9,
+    "AI2D": 51.5,
+    "ChartQA": 47.4,
+    "ScienceQA": 68.4,
+    "MMMU": 33.8,
+    "MMBench": 66.4,
+    "MathVista": 29.8,
+    "AverageScore": 55.12500000000001
+  },
+  {
+    "Model": "DeepSeek-VL-7B",
+    "ModelSize": "7.3B",
+    "OpenSource": "Yes",
+    "TextVQA": 64.9,
+    "POPE": 85.6,
+    "AI2D": 65.3,
+    "ChartQA": 59.1,
+    "ScienceQA": 80.9,
+    "MMMU": 38.3,
+    "MMBench": 73.8,
+    "MathVista": 36.9,
+    "AverageScore": 63.10000000000001
+  },
+  {
+    "Model": "XVERSE-V-13B",
+    "ModelSize": "13B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 29.3,
+    "AI2D": 70.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 86.8,
+    "MMMU": 44.1,
+    "MMBench": 75.4,
+    "MathVista": 45.3,
+    "AverageScore": 58.583333333333336
+  },
+  {
+    "Model": "MiniCPM-Llama3-V2.5",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 86.7,
+    "AI2D": 78.4,
+    "ChartQA": "N/A",
+    "ScienceQA": 89.2,
+    "MMMU": 45.8,
+    "MMBench": 77.6,
+    "MathVista": 54.3,
+    "AverageScore": 72.00000000000001
+  },
+  {
+    "Model": "CogVLM-17B-Chat",
+    "ModelSize": "17B",
+    "OpenSource": "Yes",
+    "TextVQA": 78.2,
+    "POPE": 88.0,
+    "AI2D": 63.3,
+    "ChartQA": 65.5,
+    "ScienceQA": 66.2,
+    "MMMU": 37.3,
+    "MMBench": 65.8,
+    "MathVista": 35.0,
+    "AverageScore": 62.4125
+  },
+  {
+    "Model": "CogVLM2-19B-Chat",
+    "ModelSize": "19B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 83.4,
+    "AI2D": 73.4,
+    "ChartQA": 33.0,
+    "ScienceQA": 90.2,
+    "MMMU": 42.6,
+    "MMBench": 73.9,
+    "MathVista": 38.6,
+    "AverageScore": 62.15714285714286
+  },
+  {
+    "Model": "GLM-4v-9B",
+    "ModelSize": "9B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 89.4,
+    "AI2D": 71.2,
+    "ChartQA": "N/A",
+    "ScienceQA": 96.7,
+    "MMMU": 46.9,
+    "MMBench": 71.4,
+    "MathVista": 51.1,
+    "AverageScore": 71.11666666666667
+  },
+  {
+    "Model": "IDEFICS-9B-Instruct",
+    "ModelSize": "9B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 81.9,
+    "AI2D": 42.2,
+    "ChartQA": "N/A",
+    "ScienceQA": 53.5,
+    "MMMU": 18.4,
+    "MMBench": 45.3,
+    "MathVista": 21.1,
+    "AverageScore": 43.73333333333334
+  },
+  {
+    "Model": "IDEFICS-80B-Instruct",
+    "ModelSize": "80B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 66.0,
+    "AI2D": 54.8,
+    "ChartQA": "N/A",
+    "ScienceQA": 61.8,
+    "MMMU": 24.0,
+    "MMBench": 54.6,
+    "MathVista": 26.8,
+    "AverageScore": 48.0
+  },
+  {
+    "Model": "IDEFICS2-8B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 68.9,
+    "POPE": 86.2,
+    "AI2D": 72.3,
+    "ChartQA": "N/A",
+    "ScienceQA": 88.7,
+    "MMMU": 45.2,
+    "MMBench": 75.7,
+    "MathVista": 52.2,
+    "AverageScore": 69.88571428571429
+  },
+  {
+    "Model": "InternVL-Chat-V1.5",
+    "ModelSize": "26B",
+    "OpenSource": "Yes",
+    "TextVQA": 80.4,
+    "POPE": 87.5,
+    "AI2D": 80.6,
+    "ChartQA": 83.9,
+    "ScienceQA": 93.9,
+    "MMMU": 46.8,
+    "MMBench": 82.3,
+    "MathVista": 54.7,
+    "AverageScore": 76.2625
+  },
+  {
+    "Model": "Mini-InternVL-Chat-2B-V1.5",
+    "ModelSize": "2B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 85.4,
+    "AI2D": 69.7,
+    "ChartQA": "N/A",
+    "ScienceQA": 84.8,
+    "MMMU": 37.4,
+    "MMBench": 70.7,
+    "MathVista": 41.3,
+    "AverageScore": 64.88333333333334
+  },
+  {
+    "Model": "Mini-InternVL-Chat-4B-V1.5",
+    "ModelSize": "4B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 81.4,
+    "AI2D": 77.0,
+    "ChartQA": "N/A",
+    "ScienceQA": 92.6,
+    "MMMU": 45.1,
+    "MMBench": 75.7,
+    "MathVista": 54.6,
+    "AverageScore": 71.06666666666668
+  },
+  {
+    "Model": "PaliGemma-3B-mix-448",
+    "ModelSize": "3B",
+    "OpenSource": "Yes",
+    "TextVQA": 68.1,
+    "POPE": 87.5,
+    "AI2D": 68.3,
+    "ChartQA": 33.7,
+    "ScienceQA": 94.3,
+    "MMMU": 34.9,
+    "MMBench": 71.0,
+    "MathVista": 28.7,
+    "AverageScore": 60.81249999999999
+  },
+  {
+    "Model": "Cambrian-8B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 72.6,
+    "POPE": 86.4,
+    "AI2D": 74.6,
+    "ChartQA": 72.6,
+    "ScienceQA": 81.0,
+    "MMMU": 41.8,
+    "MMBench": 74.6,
+    "MathVista": 47.0,
+    "AverageScore": 68.825
+  },
+  {
+    "Model": "Cambrian-13B",
+    "ModelSize": "13B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 86.8,
+    "AI2D": 73.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 79.3,
+    "MMMU": 41.6,
+    "MMBench": 73.2,
+    "MathVista": 47.4,
+    "AverageScore": 66.98333333333333
+  },
+  {
+    "Model": "Cambrian-34B",
+    "ModelSize": "34B",
+    "OpenSource": "Yes",
+    "TextVQA": 72.1,
+    "POPE": 85.1,
+    "AI2D": 79.5,
+    "ChartQA": 73.7,
+    "ScienceQA": 85.6,
+    "MMMU": 50.4,
+    "MMBench": 80.4,
+    "MathVista": 50.3,
+    "AverageScore": 72.13749999999999
+  },
+  {
+    "Model": "Chameleon-7B",
+    "ModelSize": "7B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 19.4,
+    "AI2D": 46.0,
+    "ChartQA": "N/A",
+    "ScienceQA": 46.8,
+    "MMMU": 22.4,
+    "MMBench": 15.4,
+    "MathVista": 22.3,
+    "AverageScore": 28.71666666666667
+  },
+  {
+    "Model": "Chameleon-30B",
+    "ModelSize": "30B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 59.8,
+    "AI2D": 53.7,
+    "ChartQA": "N/A",
+    "ScienceQA": 58.8,
+    "MMMU": 38.8,
+    "MMBench": 32.5,
+    "MathVista": 23.6,
+    "AverageScore": 44.53333333333334
+  },
+  {
+    "Model": "InternLM-XComposer",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 38.5,
+    "POPE": 70.9,
+    "AI2D": 56.9,
+    "ChartQA": "N/A",
+    "ScienceQA": 89.8,
+    "MMMU": 35.6,
+    "MMBench": 74.4,
+    "MathVista": 29.8,
+    "AverageScore": 56.557142857142864
+  },
+  {
+    "Model": "InternLM-XComposer2",
+    "ModelSize": "7B",
+    "OpenSource": "Yes",
+    "TextVQA": 69.7,
+    "POPE": 83.0,
+    "AI2D": 81.2,
+    "ChartQA": 71.8,
+    "ScienceQA": 96.7,
+    "MMMU": 41.4,
+    "MMBench": 80.7,
+    "MathVista": 59.5,
+    "AverageScore": 73.0
+  },
+  {
+    "Model": "InternLM-XComposer2-1.8B",
+    "ModelSize": "2B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 84.2,
+    "AI2D": 71.1,
+    "ChartQA": "N/A",
+    "ScienceQA": 92.2,
+    "MMMU": 29.7,
+    "MMBench": 73.0,
+    "MathVista": 50.1,
+    "AverageScore": 66.71666666666667
+  },
+  {
+    "Model": "InternLM-XComposer2-4KHD",
+    "ModelSize": "7B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 2.9,
+    "AI2D": 81.0,
+    "ChartQA": "N/A",
+    "ScienceQA": 96.3,
+    "MMMU": 39.7,
+    "MMBench": 80.2,
+    "MathVista": 59.4,
+    "AverageScore": 59.91666666666666
+  },
+  {
+    "Model": "InternLM-XComposer2.5",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 78.2,
+    "POPE": 87.9,
+    "AI2D": 81.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 96.6,
+    "MMMU": 42.9,
+    "MMBench": 82.0,
+    "MathVista": 63.7,
+    "AverageScore": 76.12857142857142
+  },
+  {
+    "Model": "GPT-4v (1106, detail-low)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 75.4,
+    "AI2D": 75.9,
+    "ChartQA": "N/A",
+    "ScienceQA": 82.1,
+    "MMMU": 53.8,
+    "MMBench": 77.0,
+    "MathVista": 48.7,
+    "AverageScore": 68.81666666666666
+  },
+  {
+    "Model": "GPT-4v (1106, detail-high)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": "N/A",
+    "AI2D": 71.4,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 59.3,
+    "MMBench": 65.4,
+    "MathVista": 48.2,
+    "AverageScore": 61.075
+  },
+  {
+    "Model": "GPT-4v (0409, detail-low)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": "N/A",
+    "AI2D": 76.1,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 62.3,
+    "MMBench": 80.8,
+    "MathVista": 51.4,
+    "AverageScore": 67.64999999999999
+  },
+  {
+    "Model": "GPT-4v (0409, detail-high)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": "N/A",
+    "AI2D": 78.6,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 61.7,
+    "MMBench": 81.0,
+    "MathVista": 54.7,
+    "AverageScore": 69.0
+  },
+  {
+    "Model": "GPT-4o (0513, detail-low)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 85.0,
+    "AI2D": 77.4,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 62.8,
+    "MMBench": 83.3,
+    "MathVista": 56.5,
+    "AverageScore": 73.0
+  },
+  {
+    "Model": "GPT-4o (0513, detail-high)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 85.6,
+    "AI2D": 84.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 90.7,
+    "MMMU": 69.2,
+    "MMBench": 83.4,
+    "MathVista": 61.3,
+    "AverageScore": 79.13333333333334
+  },
+  {
+    "Model": "GPT-4o-mini (0718, detail-high)",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 81.9,
+    "AI2D": 77.8,
+    "ChartQA": "N/A",
+    "ScienceQA": 85.4,
+    "MMMU": 60.0,
+    "MMBench": 77.6,
+    "MathVista": 52.4,
+    "AverageScore": 72.51666666666667
+  },
+  {
+    "Model": "Gemini-1.0-Pro",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": 36.9,
+    "POPE": "N/A",
+    "AI2D": 72.9,
+    "ChartQA": "N/A",
+    "ScienceQA": 81.4,
+    "MMMU": 49.0,
+    "MMBench": 73.6,
+    "MathVista": 46.5,
+    "AverageScore": 60.050000000000004
+  },
+  {
+    "Model": "Gemini-1.5-Pro",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 88.2,
+    "AI2D": 79.1,
+    "ChartQA": "N/A",
+    "ScienceQA": 85.7,
+    "MMMU": 60.6,
+    "MMBench": 73.9,
+    "MathVista": 57.7,
+    "AverageScore": 74.2
+  },
+  {
+    "Model": "Qwen-VL-Plus",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 85.4,
+    "AI2D": 65.7,
+    "ChartQA": "N/A",
+    "ScienceQA": 73.4,
+    "MMMU": 39.8,
+    "MMBench": 67.0,
+    "MathVista": 37.6,
+    "AverageScore": 61.48333333333334
+  },
+  {
+    "Model": "Qwen-VL-Max",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 71.9,
+    "AI2D": 75.7,
+    "ChartQA": "N/A",
+    "ScienceQA": 80.0,
+    "MMMU": 52.0,
+    "MMBench": 77.6,
+    "MathVista": 43.4,
+    "AverageScore": 66.76666666666667
+  },
+  {
+    "Model": "Step-1V",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": 71.6,
+    "POPE": 86.8,
+    "AI2D": 79.2,
+    "ChartQA": 57.7,
+    "ScienceQA": 84.0,
+    "MMMU": 49.9,
+    "MMBench": 80.7,
+    "MathVista": 44.8,
+    "AverageScore": 69.33749999999999
+  },
+  {
+    "Model": "Claude3-Haiku",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 74.4,
+    "AI2D": 65.6,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 49.7,
+    "MMBench": 60.7,
+    "MathVista": 42.2,
+    "AverageScore": 58.519999999999996
+  },
+  {
+    "Model": "Claude3-Sonnet",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 68.2,
+    "AI2D": 69.9,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 47.4,
+    "MMBench": 67.8,
+    "MathVista": 45.0,
+    "AverageScore": 59.660000000000004
+  },
+  {
+    "Model": "Claude3.5-Sonnet",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 73.6,
+    "AI2D": 80.2,
+    "ChartQA": "N/A",
+    "ScienceQA": 88.9,
+    "MMMU": 65.9,
+    "MMBench": 79.7,
+    "MathVista": 61.6,
+    "AverageScore": 74.98333333333333
+  },
+  {
+    "Model": "Claude3-Opus",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 74.0,
+    "AI2D": 70.6,
+    "ChartQA": "N/A",
+    "ScienceQA": "N/A",
+    "MMMU": 54.9,
+    "MMBench": 63.3,
+    "MathVista": 45.8,
+    "AverageScore": 61.720000000000006
+  },
+  {
+    "Model": "GLM-4v",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 89.9,
+    "AI2D": 76.1,
+    "ChartQA": "N/A",
+    "ScienceQA": 97.4,
+    "MMMU": 45.6,
+    "MMBench": 81.3,
+    "MathVista": 45.6,
+    "AverageScore": 72.65
+  },
+  {
+    "Model": "CongRong",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 86.6,
+    "AI2D": 82.4,
+    "ChartQA": "N/A",
+    "ScienceQA": 95.9,
+    "MMMU": 48.3,
+    "MMBench": 82.8,
+    "MathVista": 61.0,
+    "AverageScore": 76.16666666666667
+  },
+  {
+    "Model": "LLaVA-v1-7B",
+    "ModelSize": "7.2B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 75.9,
+    "AI2D": 48.3,
+    "ChartQA": "N/A",
+    "ScienceQA": 61.8,
+    "MMMU": 34.1,
+    "MMBench": 43.8,
+    "MathVista": 25.2,
+    "AverageScore": 48.18333333333333
+  },
+  {
+    "Model": "LLaVA-v1.5-7B",
+    "ModelSize": "7.2B",
+    "OpenSource": "Yes",
+    "TextVQA": 45.5,
+    "POPE": 86.1,
+    "AI2D": 55.5,
+    "ChartQA": 17.8,
+    "ScienceQA": 69.2,
+    "MMMU": 35.7,
+    "MMBench": 66.5,
+    "MathVista": 25.6,
+    "AverageScore": 50.237500000000004
+  },
+  {
+    "Model": "LLaVA-v1.5-13B",
+    "ModelSize": "13.4B",
+    "OpenSource": "Yes",
+    "TextVQA": 48.9,
+    "POPE": 88.4,
+    "AI2D": 61.1,
+    "ChartQA": 18.2,
+    "ScienceQA": 72.6,
+    "MMMU": 37.0,
+    "MMBench": 69.2,
+    "MathVista": 27.7,
+    "AverageScore": 52.887499999999996
+  },
+  {
+    "Model": "LLaVA-InternLM-7B (QLoRA)",
+    "ModelSize": "7.6B",
+    "OpenSource": "Yes",
+    "TextVQA": 45.8,
+    "POPE": 86.0,
+    "AI2D": 58.0,
+    "ChartQA": 15.8,
+    "ScienceQA": 68.4,
+    "MMMU": 36.9,
+    "MMBench": 69.0,
+    "MathVista": 27.1,
+    "AverageScore": 50.875
+  },
+  {
+    "Model": "LLaVA-v1.5-7B (QLoRA)",
+    "ModelSize": "7.2B",
+    "OpenSource": "Yes",
+    "TextVQA": 49.7,
+    "POPE": 87.2,
+    "AI2D": 55.9,
+    "ChartQA": 18.7,
+    "ScienceQA": 68.7,
+    "MMMU": 33.7,
+    "MMBench": 67.7,
+    "MathVista": 25.1,
+    "AverageScore": 50.8375
+  },
+  {
+    "Model": "LLaVA-v1.5-13B (QLoRA)",
+    "ModelSize": "13.4B",
+    "OpenSource": "Yes",
+    "TextVQA": 50.7,
+    "POPE": 86.9,
+    "AI2D": 61.3,
+    "ChartQA": 19.0,
+    "ScienceQA": 70.3,
+    "MMMU": 35.2,
+    "MMBench": 68.8,
+    "MathVista": 27.6,
+    "AverageScore": 52.47500000000001
+  },
+  {
+    "Model": "LLaVA-LLaMA-3-8B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 52.0,
+    "POPE": 87.3,
+    "AI2D": 69.9,
+    "ChartQA": 50.4,
+    "ScienceQA": 72.2,
+    "MMMU": 39.2,
+    "MMBench": 71.7,
+    "MathVista": 40.0,
+    "AverageScore": 60.3375
+  },
+  {
+    "Model": "LLaVA-InternLM2-7B (QLoRA)",
+    "ModelSize": "8.1B",
+    "OpenSource": "Yes",
+    "TextVQA": 49.3,
+    "POPE": 87.8,
+    "AI2D": 63.6,
+    "ChartQA": 16.0,
+    "ScienceQA": 73.7,
+    "MMMU": 40.1,
+    "MMBench": 73.3,
+    "MathVista": 26.0,
+    "AverageScore": 53.725
+  },
+  {
+    "Model": "LLaVA-InternLM2-20B (QLoRA)",
+    "ModelSize": "20.2B",
+    "OpenSource": "Yes",
+    "TextVQA": 50.4,
+    "POPE": 88.1,
+    "AI2D": 65.4,
+    "ChartQA": 17.6,
+    "ScienceQA": 73.7,
+    "MMMU": 39.4,
+    "MMBench": 75.1,
+    "MathVista": 25.3,
+    "AverageScore": 54.37499999999999
+  },
+  {
+    "Model": "LLaVA-Next-Vicuna-7B",
+    "ModelSize": "7.1B",
+    "OpenSource": "Yes",
+    "TextVQA": 64.4,
+    "POPE": 87.5,
+    "AI2D": 67.0,
+    "ChartQA": 55.4,
+    "ScienceQA": 70.3,
+    "MMMU": 37.6,
+    "MMBench": 69.2,
+    "MathVista": 31.5,
+    "AverageScore": 60.362500000000004
+  },
+  {
+    "Model": "LLaVA-Next-Mistral-7B",
+    "ModelSize": "7.6B",
+    "OpenSource": "Yes",
+    "TextVQA": 65.2,
+    "POPE": 87.3,
+    "AI2D": 69.0,
+    "ChartQA": 51.8,
+    "ScienceQA": 73.0,
+    "MMMU": 37.0,
+    "MMBench": 69.6,
+    "MathVista": 34.6,
+    "AverageScore": 60.9375
+  },
+  {
+    "Model": "LLaVA-Next-Vicuna-13B",
+    "ModelSize": "13.4B",
+    "OpenSource": "Yes",
+    "TextVQA": 66.9,
+    "POPE": 87.8,
+    "AI2D": 72.2,
+    "ChartQA": 61.4,
+    "ScienceQA": 73.7,
+    "MMMU": 37.3,
+    "MMBench": 70.0,
+    "MathVista": 34.1,
+    "AverageScore": 62.925
+  },
+  {
+    "Model": "LLaVA-Next-Yi-34B",
+    "ModelSize": "34.8B",
+    "OpenSource": "Yes",
+    "TextVQA": 69.3,
+    "POPE": 89.6,
+    "AI2D": 78.9,
+    "ChartQA": 67.6,
+    "ScienceQA": 82.0,
+    "MMMU": 48.8,
+    "MMBench": 81.1,
+    "MathVista": 40.4,
+    "AverageScore": 69.71249999999999
+  },
+  {
+    "Model": "LLaVA-Next-Llama3",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 52.8,
+    "POPE": 79.3,
+    "AI2D": 68.7,
+    "ChartQA": 42.7,
+    "ScienceQA": 73.9,
+    "MMMU": 38.4,
+    "MMBench": 71.2,
+    "MathVista": 33.6,
+    "AverageScore": 57.574999999999996
+  },
+  {
+    "Model": "LLaVA-Next-Interleave-7B-DPO",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 56.7,
+    "POPE": 84.2,
+    "AI2D": 74.0,
+    "ChartQA": 49.1,
+    "ScienceQA": 72.7,
+    "MMMU": 41.8,
+    "MMBench": 75.9,
+    "MathVista": 35.5,
+    "AverageScore": 61.2375
+  },
+  {
+    "Model": "360VL-70B",
+    "ModelSize": "70B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 87.3,
+    "AI2D": 71.9,
+    "ChartQA": "N/A",
+    "ScienceQA": 87.4,
+    "MMMU": 53.4,
+    "MMBench": 78.8,
+    "MathVista": 38.0,
+    "AverageScore": 69.46666666666667
+  },
+  {
+    "Model": "mPLUG-Owl2",
+    "ModelSize": "8.2B",
+    "OpenSource": "Yes",
+    "TextVQA": 56.4,
+    "POPE": 84.6,
+    "AI2D": 55.7,
+    "ChartQA": 22.8,
+    "ScienceQA": 69.5,
+    "MMMU": 34.7,
+    "MMBench": 66.0,
+    "MathVista": 25.4,
+    "AverageScore": 51.887499999999996
+  },
+  {
+    "Model": "WeMM",
+    "ModelSize": "7B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 86.7,
+    "AI2D": 77.9,
+    "ChartQA": "N/A",
+    "ScienceQA": 83.3,
+    "MMMU": 45.3,
+    "MMBench": 79.3,
+    "MathVista": 54.9,
+    "AverageScore": 71.23333333333333
+  },
+  {
+    "Model": "Phi-3-Vision",
+    "ModelSize": "4.2B",
+    "OpenSource": "Yes",
+    "TextVQA": 72.4,
+    "POPE": 83.7,
+    "AI2D": 78.4,
+    "ChartQA": 81.8,
+    "ScienceQA": 90.0,
+    "MMMU": 46.1,
+    "MMBench": 73.6,
+    "MathVista": 44.6,
+    "AverageScore": 71.325
+  },
+  {
+    "Model": "MMAlaya",
+    "ModelSize": "7.8B",
+    "OpenSource": "Yes",
+    "TextVQA": 27.1,
+    "POPE": 82.7,
+    "AI2D": 42.3,
+    "ChartQA": 10.2,
+    "ScienceQA": 60.9,
+    "MMMU": 32.0,
+    "MMBench": 58.7,
+    "MathVista": 22.7,
+    "AverageScore": 42.075
+  },
+  {
+    "Model": "MiniCPM-V",
+    "ModelSize": "3B",
+    "OpenSource": "Yes",
+    "TextVQA": 56.6,
+    "POPE": 79.5,
+    "AI2D": 56.3,
+    "ChartQA": 44.2,
+    "ScienceQA": 77.0,
+    "MMMU": 38.3,
+    "MMBench": 64.1,
+    "MathVista": 30.6,
+    "AverageScore": 55.825
+  },
+  {
+    "Model": "MiniCPM-V-2",
+    "ModelSize": "2.8B",
+    "OpenSource": "Yes",
+    "TextVQA": 73.2,
+    "POPE": 86.3,
+    "AI2D": 62.9,
+    "ChartQA": 55.6,
+    "ScienceQA": 80.7,
+    "MMMU": 38.2,
+    "MMBench": 69.1,
+    "MathVista": 39.8,
+    "AverageScore": 63.225
+  },
+  {
+    "Model": "Ovis1.5-Llama3-8B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": 74.0,
+    "POPE": 88.5,
+    "AI2D": 82.5,
+    "ChartQA": 76.4,
+    "ScienceQA": 88.8,
+    "MMMU": 48.3,
+    "MMBench": 80.8,
+    "MathVista": 63.0,
+    "AverageScore": 75.2875
+  },
+  {
+    "Model": "RekaFlash",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 80.6,
+    "AI2D": 75.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 85.5,
+    "MMMU": 44.8,
+    "MMBench": 76.8,
+    "MathVista": 26.6,
+    "AverageScore": 64.98333333333333
+  },
+  {
+    "Model": "RekaEdge",
+    "ModelSize": "",
+    "OpenSource": "No",
+    "TextVQA": "N/A",
+    "POPE": 83.3,
+    "AI2D": 67.4,
+    "ChartQA": "N/A",
+    "ScienceQA": 73.5,
+    "MMMU": 42.4,
+    "MMBench": 66.4,
+    "MathVista": 37.6,
+    "AverageScore": 61.76666666666667
+  },
+  {
+    "Model": "InternVL2-1B",
+    "ModelSize": "1B",
+    "OpenSource": "Yes",
+    "TextVQA": 70.9,
+    "POPE": 84.9,
+    "AI2D": 63.8,
+    "ChartQA": 67.8,
+    "ScienceQA": 87.9,
+    "MMMU": 36.7,
+    "MMBench": 65.2,
+    "MathVista": 39.4,
+    "AverageScore": 64.575
+  },
+  {
+    "Model": "InternVL2-2B",
+    "ModelSize": "2B",
+    "OpenSource": "Yes",
+    "TextVQA": 73.4,
+    "POPE": 85.2,
+    "AI2D": 74.1,
+    "ChartQA": 71.7,
+    "ScienceQA": 94.1,
+    "MMMU": 36.3,
+    "MMBench": 73.4,
+    "MathVista": 46.0,
+    "AverageScore": 69.275
+  },
+  {
+    "Model": "InternVL2-4B",
+    "ModelSize": "4B",
+    "OpenSource": "Yes",
+    "TextVQA": 74.7,
+    "POPE": 84.6,
+    "AI2D": 79.0,
+    "ChartQA": 80.7,
+    "ScienceQA": 96.3,
+    "MMMU": 48.3,
+    "MMBench": 78.5,
+    "MathVista": 58.1,
+    "AverageScore": 75.025
+  },
+  {
+    "Model": "InternVL2-8B",
+    "ModelSize": "8B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 84.2,
+    "AI2D": 83.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 97.1,
+    "MMMU": 51.2,
+    "MMBench": 82.0,
+    "MathVista": 58.3,
+    "AverageScore": 76.06666666666666
+  },
+  {
+    "Model": "InternVL2-26B",
+    "ModelSize": "26B",
+    "OpenSource": "Yes",
+    "TextVQA": 82.5,
+    "POPE": 86.4,
+    "AI2D": 84.5,
+    "ChartQA": 85.1,
+    "ScienceQA": 97.4,
+    "MMMU": 50.7,
+    "MMBench": 83.4,
+    "MathVista": 59.4,
+    "AverageScore": 78.675
+  },
+  {
+    "Model": "InternVL2-40B",
+    "ModelSize": "40B",
+    "OpenSource": "Yes",
+    "TextVQA": 83.5,
+    "POPE": 81.9,
+    "AI2D": 86.8,
+    "ChartQA": 83.8,
+    "ScienceQA": 98.5,
+    "MMMU": 55.2,
+    "MMBench": 86.8,
+    "MathVista": 64.0,
+    "AverageScore": 80.0625
+  },
+  {
+    "Model": "InternVL2-Llama3-76B",
+    "ModelSize": "76B",
+    "OpenSource": "Yes",
+    "TextVQA": "N/A",
+    "POPE": 87.3,
+    "AI2D": 87.6,
+    "ChartQA": "N/A",
+    "ScienceQA": 98.8,
+    "MMMU": 58.3,
+    "MMBench": 86.5,
+    "MathVista": 65.6,
+    "AverageScore": 80.68333333333334
+  }
+];
+
+        let filteredAndSortedData = [];
+
+        function getModelSizeCategory(size) {
+            size = parseFloat(size.replace('B', ''));
+            if (isNaN(size)) return 'Unknown';
+            if (size < 4) return '<4B';
+            if (size < 10) return '4-10B';
+            return '10B+';
+        }
+
+        function loadData() {
+            const data = jsonData;
+            
+            const header = document.getElementById('table-header');
+            const body = document.getElementById('table-body');
+            
+            // Create header
+            const headerFields = Object.keys(data[0]);
+            header.innerHTML = headerFields.map(field => `<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${field}</th>`).join('');
+            
+            // Create rows
+            function createRows(filteredData) {
+                body.innerHTML = '';
+                filteredData.forEach(model => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = headerFields.map(field => {
+                        let value = model[field];
+                        if (field === 'ModelSize') {
+                            value = `${value} (${getModelSizeCategory(value)})`;
+                        } else if (field === 'AverageScore' && value !== 'N/A') {
+                            value = parseFloat(value).toFixed(2);
+                        }
+                        return `<td class="px-4 py-2 whitespace-nowrap">${value}</td>`;
+                    }).join('');
+                    body.appendChild(row);
+                });
+            }
+
+            createRows(data);
+
+            // Initialize Select2
+            $('#openSourceFilter, #modelSizeFilter').select2();
+
+            // Filter and sort function
+            function filterAndSortData() {
+                const openSourceValues = $('#openSourceFilter').val();
+                const modelSizeValues = $('#modelSizeFilter').val();
+                const sortBy = $('#sortBy').val();
+
+                filteredAndSortedData = data.filter(model => 
+                    (openSourceValues.length === 0 || openSourceValues.includes(model.OpenSource)) &&
+                    (modelSizeValues.length === 0 || modelSizeValues.includes(getModelSizeCategory(model.ModelSize)))
+                );
+
+                // Sort data
+                filteredAndSortedData.sort((a, b) => {
+                    if (sortBy === 'AverageScore') {
+                        return (b[sortBy] === 'N/A' ? -Infinity : b[sortBy]) - (a[sortBy] === 'N/A' ? -Infinity : a[sortBy]);
+                    } else {
+                        return a[sortBy].localeCompare(b[sortBy]);
+                    }
+                });
+
+                createRows(filteredAndSortedData);
+            }
+
+            // Attach event listeners
+            $('#openSourceFilter, #modelSizeFilter, #sortBy').on('change', filterAndSortData);
+
+            // Export to CSV function
+            function exportToCSV() {
+                const excludeFields = ['OpenSource'];
+                const fields = Object.keys(filteredAndSortedData[0]).filter(field => !excludeFields.includes(field));
+                
+                let csv = fields.join(',') + '\n';
+                
+                filteredAndSortedData.forEach(row => {
+                    csv += fields.map(field => {
+                        let value = row[field];
+                        if (field === 'ModelSize') {
+                            value = value.replace('B', '');
+                        } else if (field === 'AverageScore' && value !== 'N/A') {
+                            value = parseFloat(value).toFixed(2);
+                        }
+                        return `"${value}"`;
+                    }).join(',') + '\n';
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "exported_data.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+
+            // Attach export event listener
+            $('#exportCSV').on('click', exportToCSV);
+
+            // Initial filter and sort
+            filterAndSortData();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
